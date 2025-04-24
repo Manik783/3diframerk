@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>3D Model Platform - Server Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #202124;
+      color: #E8EAED;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      text-align: center;
+      background-color: #303134;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #8AB4F8;
+      margin-bottom: 20px;
+    }
+    p {
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+    .links {
+      margin-top: 30px;
+    }
+    a, button {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px 20px;
+      background-color: #8AB4F8;
+      color: #202124;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    a:hover, button:hover {
+      background-color: #669DF6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>3D Model Platform - Server Test</h1>
+    <p>The server is responding! This is a test page to verify that the application is deployed correctly.</p>
+    <p>If you're seeing this page, it means the server is running but might not be correctly serving the application.</p>
+    
+    <div class="links">
+      <a href="https://staging.d1jvzh3w3qfomn.amplifyapp.com/login.html">Go to Login Page</a>
+      <a href="https://staging.d1jvzh3w3qfomn.amplifyapp.com/api/users">Test API Endpoint</a>
+    </div>
+    
+    <p>For direct navigation, try these URLs:</p>
+    <div class="links">
+      <a href="https://staging.d1jvzh3w3qfomn.amplifyapp.com/frontend/build/index.html">Frontend Build</a>
+      <a href="https://staging.d1jvzh3w3qfomn.amplifyapp.com/login">React Login Route</a>
+    </div>
+    
+    <p>Default login credentials:</p>
+    <p>Admin: admin@example.com / password123</p>
+    <p>User: user@example.com / password123</p>
+    
+    <div class="links">
+      <button onclick="createTestResponse()">Generate Test Response</button>
+    </div>
+    
+    <div id="testResponse" style="margin-top: 20px; padding: 10px; background-color: #444; border-radius: 4px; text-align: left; display: none;"></div>
+  </div>
+  
+  <script>
+    function createTestResponse() {
+      const testDiv = document.getElementById('testResponse');
+      testDiv.style.display = 'block';
+      testDiv.innerHTML = 'Testing server response...<br>';
+      
+      // Test if fetch API works
+      fetch('/api/users')
+        .then(response => {
+          testDiv.innerHTML += `API Response Status: ${response.status}<br>`;
+          return response.text();
+        })
+        .then(data => {
+          testDiv.innerHTML += `API Response Body: ${data}<br>`;
+        })
+        .catch(error => {
+          testDiv.innerHTML += `API Error: ${error.message}<br>`;
+        });
+      
+      // Show environment information
+      testDiv.innerHTML += `URL: ${window.location.href}<br>`;
+      testDiv.innerHTML += `Host: ${window.location.host}<br>`;
+      testDiv.innerHTML += `Pathname: ${window.location.pathname}<br>`;
+    }
+  </script>
+</body>
+</html> 

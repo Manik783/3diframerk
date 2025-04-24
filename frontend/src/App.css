@@ -1,0 +1,330 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom Styling */
+
+/* Global Styles */
+:root {
+  --primary: #647881;
+  --secondary: #FFF4E2;
+  --dark: #000000;
+  --light: #FFFFFF;
+  --primary-hover: #556770;
+  --primary-light: #8DA0A8;
+  --secondary-light: #FFFBF5;
+  --background: #000000;
+  --text-primary: #FFFFFF;
+  --text-secondary: #FFF4E2;
+  --accent: #647881;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
+/* Card styling */
+.card {
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: transform 0.3s ease;
+  border-color: var(--accent);
+  background-color: #111111;
+}
+
+.card p {
+  color: var(--text-primary);
+}
+
+.card .card-title {
+  color: var(--text-secondary) !important;
+}
+
+.card-text {
+  color: var(--text-primary) !important;
+}
+
+.text-muted, .card .text-muted {
+  color: var(--text-secondary) !important;
+  opacity: 0.8;
+}
+
+/* Background colors */
+.bg-primary {
+  background-color: var(--background) !important;
+}
+
+.bg-light {
+  background-color: var(--background) !important;
+  border-top: 1px solid var(--accent);
+}
+
+/* Form Controls */
+.form-control {
+  background-color: #222222;
+  border-color: #333333;
+  color: var(--text-primary);
+}
+
+.form-control:focus {
+  background-color: #222222;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.25rem rgba(100, 120, 129, 0.25);
+  color: var(--text-primary);
+}
+
+.form-label {
+  color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-primary:hover, 
+.btn-primary:focus, 
+.btn-primary:active {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+
+.btn-outline-primary {
+  color: var(--text-secondary) !important;
+  border-color: var(--accent) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-light, .btn-outline-light {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-success {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--text-secondary) !important;
+}
+
+.text-white {
+  color: var(--text-primary) !important;
+}
+
+.lead {
+  color: var(--text-primary) !important;
+}
+
+/* Text color overrides for dark backgrounds */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-secondary) !important;
+}
+
+p, div, span, li {
+  color: var(--text-primary);
+}
+
+.display-4, .display-3, .display-2, .display-1 {
+  color: var(--text-secondary) !important;
+}
+
+/* Card overrides */
+.card-header {
+  background-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+.card-header h1, .card-header h2, .card-header h3, 
+.card-header h4, .card-header h5, .card-header h6 {
+  color: var(--text-primary) !important;
+  margin-bottom: 0;
+}
+
+/* Table styling for dark mode */
+.table {
+  color: var(--text-primary);
+  border-color: #333333;
+}
+
+.table-dark {
+  background-color: #1a1a1a;
+  color: var(--text-primary);
+}
+
+.table-dark th,
+.table-dark td,
+.table-dark thead th {
+  border-color: #333333;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(100, 120, 129, 0.1);
+}
+
+/* Form select styling */
+select.form-select,
+select.form-control {
+  background-color: #222222;
+  color: var(--text-primary);
+  border-color: #333333;
+}
+
+select.form-select option,
+select.form-control option {
+  background-color: #222222;
+  color: var(--text-primary);
+}
+
+/* Navbar override */
+.navbar {
+  background-color: #000000 !important;
+  border-bottom: 1px solid var(--accent);
+}
+
+/* Custom Badge Styling */
+.badge {
+  font-weight: 500;
+  padding: 0.5em 0.8em;
+  border-radius: 0.25rem;
+}
+
+/* Status colors */
+.bg-pending {
+  background-color: #ffc107;
+}
+
+.bg-progress {
+  background-color: #0dcaf0;
+}
+
+.bg-completed {
+  background-color: #198754;
+}
+
+.bg-rejected {
+  background-color: #dc3545;
+}
+
+/* Model viewer custom styling */
+model-viewer {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  background-color: var(--secondary-light);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--primary-light);
+}
+
+/* Animation for loading spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-border {
+  animation: spin 1s linear infinite;
+}
+
+/* Additional styling for components */
+.badge.bg-success,
+.badge.bg-warning,
+.badge.bg-info,
+.badge.bg-danger {
+  color: var(--dark) !important;
+}
+
+/* Home page styling */
+.jumbotron {
+  background-color: var(--primary);
+  color: var(--light);
+  padding: 2rem;
+  border-radius: 0.3rem;
+}
+
+/* Styles for the dashboard cards */
+.dashboard-card {
+  transition: transform 0.3s ease;
+  border: 1px solid var(--primary-light);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Footer styling */
+footer {
+  background-color: var(--primary) !important;
+  color: var(--light) !important;
+}
+
+/* Alert styling */
+.alert {
+  background-color: #333333;
+  border-color: #444444;
+  color: var(--text-primary);
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+}
+
+.alert-success {
+  background-color: rgba(25, 135, 84, 0.2);
+  border-color: rgba(25, 135, 84, 0.3);
+  color: #75e297;
+}

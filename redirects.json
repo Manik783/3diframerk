@@ -1,0 +1,20 @@
+[
+  {
+    "source": "</^[^.]+$|\\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json|html)$)([^.]+$)/>",
+    "target": "/index.html",
+    "status": "200",
+    "condition": null
+  },
+  {
+    "source": "/api/<*>",
+    "target": "/api/<*>",
+    "status": "200",
+    "condition": null
+  },
+  {
+    "source": "/uploads/<*>",
+    "target": "/uploads/<*>",
+    "status": "200",
+    "condition": null
+  }
+] 

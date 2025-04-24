@@ -1,0 +1,70 @@
+version: 1
+env:
+  variables:
+    NODE_ENV: production
+    PORT: 8081
+    MONGODB_URI: mongodb+srv://lakshaychetal482:xrcVoybM2f2ETMhr@clusterrk.de7xair.mongodb.net/3d-model-platform?retryWrites=true&w=majority&appName=Clusterrk
+    JWT_SECRET: DevSecretKey123
+    UPLOAD_DIR: /tmp/uploads
+    AWS_S3_BUCKET: your-s3-bucket-name
+    AWS_REGION: us-east-1
+    # AWS credentials should be set as environment variables in the hosting platform
+    # AWS_ACCESS_KEY_ID: your-access-key-id
+    # AWS_SECRET_ACCESS_KEY: your-secret-access-key
+    BASE_URL: https://staging.d1jvzh3w3qfomn.amplifyapp.com
+
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd frontend
+        - npm install
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: frontend/build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - frontend/node_modules/**/*
+
+backend:
+  phases:
+    preBuild:
+      commands:
+        - npm install
+        - mkdir -p /tmp/uploads
+        - chmod 777 /tmp/uploads
+    build:
+      commands:
+        - echo "Starting server"
+        - npm start &
+  artifacts:
+    baseDirectory: /
+    files:
+      - '**/*'
+    discard-paths: no
+  cache:
+    paths:
+      - node_modules/**/*
+
+customHeaders:
+  - pattern: '**/*'
+    headers:
+      - key: 'Cache-Control'
+        value: 'public, max-age=0, must-revalidate'
+      - key: 'X-Frame-Options'
+        value: 'SAMEORIGIN'
+
+redirects:
+  - source: '</^[^.]+$|\\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json|html)$)([^.]+$)/>'
+    target: '/index.html'
+    status: '200'
+  - source: '/api/*'
+    target: '/api/:splat'
+    status: '200'
+  - source: '/uploads/*'
+    target: '/uploads/:splat'
+    status: '200' 
