@@ -53,16 +53,22 @@ const Register = () => {
   };
   
   return (
-    <Container>
-      <Row className="justify-content-md-center mt-5">
+    <Container className="py-5">
+      <Row className="justify-content-center">
         <Col md={6}>
-          <Card>
-            <Card.Body>
-              <Card.Title className="text-center mb-4">Register</Card.Title>
+          <Card className="shadow-sm border-0" style={{ backgroundColor: '#111111', borderColor: '#333333' }}>
+            <Card.Body className="p-4">
+              <div className="text-center mb-4">
+                <i className="bi bi-person-plus-fill" style={{ fontSize: '3rem', color: '#647881' }}></i>
+                <h2 className="mt-3" style={{ color: '#FFF4E2' }}>Create an Account</h2>
+                <p style={{ color: '#FFFFFF' }}>Sign up to start requesting 3D models</p>
+              </div>
+
               {error && <Alert variant="danger">{error}</Alert>}
+              
               <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Form.Group className="mb-3" controlId="name">
-                  <Form.Label>Name</Form.Label>
+                  <Form.Label style={{ color: '#FFF4E2' }}>Name</Form.Label>
                   <Form.Control
                     type="text"
                     name="name"
@@ -70,6 +76,7 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     placeholder="Enter your name"
+                    style={{ backgroundColor: '#222222', color: '#FFFFFF', borderColor: '#333333' }}
                   />
                   <Form.Control.Feedback type="invalid">
                     Please provide your name.
@@ -77,7 +84,7 @@ const Register = () => {
                 </Form.Group>
                 
                 <Form.Group className="mb-3" controlId="email">
-                  <Form.Label>Email</Form.Label>
+                  <Form.Label style={{ color: '#FFF4E2' }}>Email</Form.Label>
                   <Form.Control
                     type="email"
                     name="email"
@@ -85,6 +92,7 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     placeholder="Enter your email"
+                    style={{ backgroundColor: '#222222', color: '#FFFFFF', borderColor: '#333333' }}
                   />
                   <Form.Control.Feedback type="invalid">
                     Please provide a valid email.
@@ -92,7 +100,7 @@ const Register = () => {
                 </Form.Group>
                 
                 <Form.Group className="mb-3" controlId="password">
-                  <Form.Label>Password</Form.Label>
+                  <Form.Label style={{ color: '#FFF4E2' }}>Password</Form.Label>
                   <Form.Control
                     type="password"
                     name="password"
@@ -101,14 +109,15 @@ const Register = () => {
                     required
                     minLength="6"
                     placeholder="Enter password"
+                    style={{ backgroundColor: '#222222', color: '#FFFFFF', borderColor: '#333333' }}
                   />
                   <Form.Control.Feedback type="invalid">
                     Password must be at least 6 characters.
                   </Form.Control.Feedback>
                 </Form.Group>
                 
-                <Form.Group className="mb-3" controlId="confirmPassword">
-                  <Form.Label>Confirm Password</Form.Label>
+                <Form.Group className="mb-4" controlId="confirmPassword">
+                  <Form.Label style={{ color: '#FFF4E2' }}>Confirm Password</Form.Label>
                   <Form.Control
                     type="password"
                     name="confirmPassword"
@@ -116,24 +125,37 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     placeholder="Confirm password"
+                    style={{ backgroundColor: '#222222', color: '#FFFFFF', borderColor: '#333333' }}
                   />
                   <Form.Control.Feedback type="invalid">
                     Please confirm your password.
                   </Form.Control.Feedback>
                 </Form.Group>
                 
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className="w-100"
-                  disabled={loading}
-                >
-                  {loading ? 'Registering...' : 'Register'}
-                </Button>
+                <div className="d-grid gap-2">
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    size="lg"
+                    disabled={loading}
+                    style={{ backgroundColor: '#647881', borderColor: '#647881' }}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Registering...
+                      </>
+                    ) : (
+                      'Register'
+                    )}
+                  </Button>
+                </div>
               </Form>
               
-              <div className="text-center mt-3">
-                Already have an account? <Link to="/login">Login</Link>
+              <div className="text-center mt-4">
+                <p style={{ color: '#FFFFFF' }}>
+                  Already have an account? <Link to="/login" style={{ color: '#647881', textDecoration: 'none' }}>Login</Link>
+                </p>
               </div>
             </Card.Body>
           </Card>

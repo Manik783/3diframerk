@@ -29,46 +29,73 @@ const createRequest = async (req, res) => {
   }
 };
 
-// @desc    Get all requests for logged in user
+// @desc    Get requests for logged in user
 // @route   GET /api/requests
 // @access  Private
 const getUserRequests = async (req, res) => {
   try {
+    console.log('Getting requests for user ID:', req.user._id);
+    
     const requests = await Request.find({ user: req.user._id })
       .populate('model')
       .sort({ createdAt: -1 });
     
+    console.log('Found', requests.length, 'requests for user');
+    // Log all requests with their model IDs for debugging
+    requests.forEach(request => {
+      console.log('Request:', {
+        id: request._id,
+        title: request.title,
+        status: request.status,
+        modelId: request.model ? (typeof request.model === 'object' ? request.model._id : request.model) : 'none'
+      });
+    });
+    
     res.json(requests);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in getUserRequests:', error);
+    res.status(500);
+    res.json({
+      message: 'Server error',
+      stack: process.env.NODE_ENV === 'production' ? null : error.stack
+    });
   }
 };
 
-// @desc    Get a single request by ID
+// @desc    Get request by ID
 // @route   GET /api/requests/:id
 // @access  Private
 const getRequestById = async (req, res) => {
   try {
     const request = await Request.findById(req.params.id)
+      .populate('user', 'name email')
       .populate('model');
     
-    // Check if request exists
     if (!request) {
       res.status(404);
       throw new Error('Request not found');
     }
     
-    // Check if request belongs to logged in user or is admin
-    if (request.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+    // Check if user is authorized to view this request
+    if (request.user._id.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       res.status(401);
-      throw new Error('Not authorized to access this request');
+      throw new Error('Not authorized to view this request');
     }
+    
+    console.log('Request details:', {
+      id: request._id,
+      title: request.title,
+      status: request.status,
+      modelId: request.model ? (typeof request.model === 'object' ? request.model._id : request.model) : 'none'
+    });
     
     res.json(request);
   } catch (error) {
+    console.error('Error in getRequestById:', error);
     res.status(res.statusCode === 200 ? 500 : res.statusCode);
     res.json({
-      message: error.message
+      message: error.message,
+      stack: process.env.NODE_ENV === 'production' ? null : error.stack
     });
   }
 };

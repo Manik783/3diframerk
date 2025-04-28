@@ -18,6 +18,10 @@ const RequestDetail = () => {
       try {
         const response = await requestService.getRequestById(requestId);
         setRequest(response.data);
+        console.log('Request data:', response.data);
+        if (response.data && response.data.model) {
+          console.log('Model ID from request:', response.data.model);
+        }
         setLoading(false);
       } catch (error) {
         setError('Failed to load request details. Please try again.');
@@ -133,15 +137,20 @@ const RequestDetail = () => {
                           <strong>Last Updated:</strong> {formatDate(request.updatedAt)}
                         </p>
                         
-                        {request.status === 'Completed' && request.model ? (
+                        {request.status === 'Completed' ? (
                           <div className="d-grid">
+                            {console.log('Model ID type:', typeof request.model, 'Value:', request.model)}
                             <Button
                               as={Link}
-                              to={`/models/${request.model}`}
+                              to={`/models/${request.model && typeof request.model === 'object' ? request.model._id : request.model}`}
                               variant="success"
+                              className="mb-2"
                             >
                               Get Embed Code
                             </Button>
+                            <p>
+                              <small className="text-muted">Model ID: {request.model && typeof request.model === 'object' ? request.model._id : request.model}</small>
+                            </p>
                           </div>
                         ) : isAdmin && request.status !== 'Completed' ? (
                           <div className="d-grid">

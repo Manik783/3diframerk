@@ -16,17 +16,34 @@ const EmbedCode = () => {
   useEffect(() => {
     const fetchModelDetails = async () => {
       try {
+        console.log('Fetching model with ID:', modelId);
+        
+        // Make sure we have a valid model ID string
+        const actualModelId = typeof modelId === 'object' ? modelId._id : modelId;
+        
+        if (!actualModelId || actualModelId === '[object Object]') {
+          console.error('Invalid model ID:', modelId);
+          setError('Invalid model ID. Please go back to the dashboard and try again.');
+          setLoading(false);
+          return;
+        }
+        
         // First get model details
-        const modelResponse = await modelService.getModelById(modelId);
+        const modelResponse = await modelService.getModelById(actualModelId);
         setModel(modelResponse.data);
         
         // Then get the embed code
-        const embedResponse = await modelService.getEmbedCode(modelId);
+        const embedResponse = await modelService.getEmbedCode(actualModelId);
         setEmbedCode(embedResponse.data.embedCode);
         
         setLoading(false);
       } catch (error) {
-        setError('Failed to load model details or embed code. Please try again.');
+        console.error('Error fetching model details:', error);
+        setError(
+          error.response?.status === 404
+            ? 'Model not found. It may have been deleted.'
+            : 'Failed to load model details or embed code. Please try again.'
+        );
         setLoading(false);
       }
     };
@@ -79,6 +96,7 @@ const EmbedCode = () => {
               <Card.Title>Your Embed Code</Card.Title>
               <p className="text-muted mb-3">
                 Copy and paste this code into your website's HTML to display your 3D model with AR capabilities.
+                The iframe will load our model viewer with your 3D model already configured.
               </p>
               
               <Form.Group className="mb-3">
@@ -88,6 +106,7 @@ const EmbedCode = () => {
                     rows={6}
                     value={embedCode}
                     readOnly
+                    className="font-monospace"
                   />
                   <Button 
                     variant="outline-primary"
@@ -96,6 +115,13 @@ const EmbedCode = () => {
                     Copy
                   </Button>
                 </InputGroup>
+                {embedCode && (
+                  <div className="mt-2">
+                    <Alert variant="info">
+                      <strong>Preview:</strong> The code will create an iframe that loads your 3D model.
+                    </Alert>
+                  </div>
+                )}
               </Form.Group>
               
               <h5 className="mt-4">How to Use</h5>
@@ -103,10 +129,10 @@ const EmbedCode = () => {
                 <li>Copy the embed code above</li>
                 <li>Paste it into your website's HTML where you want the 3D model to appear</li>
                 <li>
-                  The iframe will automatically adapt to its container's width while maintaining
-                  the correct aspect ratio
+                  The iframe will load our specialized 3D model viewer with your model pre-configured
                 </li>
                 <li>Users on compatible devices will be able to view the model in AR by clicking the AR button</li>
+                <li>The model is served from our high-speed CloudFront CDN for optimal performance</li>
               </ol>
             </Card.Body>
           </Card>
@@ -136,7 +162,11 @@ const EmbedCode = () => {
               <div className="d-grid gap-2 mt-4">
                 <Button
                   variant="primary"
-                  onClick={() => window.open(`/embed/${modelId}`, '_blank')}
+                  onClick={() => {
+                    const userId = model.uploadedBy && model.uploadedBy._id ? model.uploadedBy._id : model.uploadedBy;
+                    const baseUrl = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:8000';
+                    window.open(`${baseUrl}/embed/${userId}/${modelId}`, '_blank');
+                  }}
                 >
                   Preview Embed
                 </Button>

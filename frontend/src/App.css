@@ -69,31 +69,12 @@ body {
   background-color: #111111;
 }
 
-.card p {
+.card .card-title {
   color: var(--text-primary);
 }
 
-.card .card-title {
+.card .text-muted {
   color: var(--text-secondary) !important;
-}
-
-.card-text {
-  color: var(--text-primary) !important;
-}
-
-.text-muted, .card .text-muted {
-  color: var(--text-secondary) !important;
-  opacity: 0.8;
-}
-
-/* Background colors */
-.bg-primary {
-  background-color: var(--background) !important;
-}
-
-.bg-light {
-  background-color: var(--background) !important;
-  border-top: 1px solid var(--accent);
 }
 
 /* Form Controls */
@@ -138,94 +119,14 @@ body {
   color: var(--text-primary) !important;
 }
 
-.btn-light, .btn-outline-light {
-  background-color: var(--accent) !important;
-  border-color: var(--accent) !important;
-  color: var(--text-primary) !important;
-}
-
-.btn-success {
-  background-color: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-
-/* Text colors */
-.text-primary {
-  color: var(--text-secondary) !important;
-}
-
-.text-white {
-  color: var(--text-primary) !important;
-}
-
-.lead {
-  color: var(--text-primary) !important;
-}
-
-/* Text color overrides for dark backgrounds */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-secondary) !important;
-}
-
-p, div, span, li {
-  color: var(--text-primary);
-}
-
-.display-4, .display-3, .display-2, .display-1 {
-  color: var(--text-secondary) !important;
-}
-
-/* Card overrides */
-.card-header {
-  background-color: var(--accent) !important;
-  color: var(--text-primary) !important;
-}
-
-.card-header h1, .card-header h2, .card-header h3, 
-.card-header h4, .card-header h5, .card-header h6 {
-  color: var(--text-primary) !important;
-  margin-bottom: 0;
-}
-
-/* Table styling for dark mode */
-.table {
-  color: var(--text-primary);
-  border-color: #333333;
-}
-
-.table-dark {
-  background-color: #1a1a1a;
-  color: var(--text-primary);
-}
-
-.table-dark th,
-.table-dark td,
-.table-dark thead th {
-  border-color: #333333;
-}
-
-.table-hover tbody tr:hover {
-  background-color: rgba(100, 120, 129, 0.1);
-}
-
-/* Form select styling */
-select.form-select,
-select.form-control {
-  background-color: #222222;
-  color: var(--text-primary);
-  border-color: #333333;
-}
-
-select.form-select option,
-select.form-control option {
-  background-color: #222222;
-  color: var(--text-primary);
-}
-
-/* Navbar override */
+/* Navbar */
 .navbar {
-  background-color: #000000 !important;
-  border-bottom: 1px solid var(--accent);
+  background-color: var(--primary) !important;
+}
+
+.navbar-dark .navbar-brand,
+.navbar-dark .nav-link {
+  color: var(--light) !important;
 }
 
 /* Custom Badge Styling */
@@ -310,6 +211,41 @@ footer {
   color: var(--light) !important;
 }
 
+/* Text styling */
+.text-primary {
+  color: var(--primary) !important;
+}
+
+/* Text color overrides for dark backgrounds */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-secondary) !important;
+}
+
+p, div, span, li {
+  color: var(--text-primary);
+}
+
+.text-muted {
+  color: var(--text-secondary) !important;
+  opacity: 0.8;
+}
+
+/* Card overrides */
+.card-header {
+  background-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+.card-header h1, .card-header h2, .card-header h3, 
+.card-header h4, .card-header h5, .card-header h6 {
+  color: var(--text-primary) !important;
+  margin-bottom: 0;
+}
+
+.card-title {
+  color: var(--text-secondary) !important;
+}
+
 /* Alert styling */
 .alert {
   background-color: #333333;
@@ -327,4 +263,89 @@ footer {
   background-color: rgba(25, 135, 84, 0.2);
   border-color: rgba(25, 135, 84, 0.3);
   color: #75e297;
+}
+
+/* Table styling for dark mode */
+.table {
+  color: var(--text-primary);
+  border-color: #333333;
+}
+
+.table-dark {
+  background-color: #1a1a1a;
+  color: var(--text-primary);
+}
+
+.table-dark th,
+.table-dark td,
+.table-dark thead th {
+  border-color: #333333;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(100, 120, 129, 0.1);
+}
+
+/* Form select styling */
+select.form-select,
+select.form-control {
+  background-color: #222222;
+  color: var(--text-primary);
+  border-color: #333333;
+}
+
+select.form-select option,
+select.form-control option {
+  background-color: #222222;
+  color: var(--text-primary);
+}
+
+/* Override bootstrap defaults for better contrast on dark theme */
+.form-control-feedback,
+.form-text,
+.invalid-feedback,
+.valid-feedback {
+  color: var(--text-secondary) !important;
+}
+
+/* Ensure all text has good contrast */
+body {
+  color: var(--text-primary) !important;
+}
+
+/* Fix for light bg-light sections */
+.bg-light {
+  background-color: var(--background) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Fix default Bootstrap card styling */
+.card-header,
+.card-footer {
+  background-color: #111111 !important;
+  border-color: #333333 !important;
+}
+
+/* Override Bootstrap's text colors */
+.text-muted,
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+/* Fix jumbotron background */
+.jumbotron,
+.bg-primary, 
+.bg-secondary {
+  background-color: var(--background) !important;
+  border: 1px solid var(--accent) !important;
+}
+
+/* Make all headings use the consistent color */
+h1:not(.card-header *), 
+h2:not(.card-header *), 
+h3:not(.card-header *), 
+h4:not(.card-header *), 
+h5:not(.card-header *), 
+h6:not(.card-header *) {
+  color: var(--text-secondary) !important;
 }

@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { 
+  upload,
   uploadModelFiles,
   getModelById,
   getEmbedCode,
   getPublicModelData
 } = require('../controllers/modelController');
-const { uploadMiddleware } = require('../controllers/s3UploadController');
 const { protect, admin } = require('../middleware/authMiddleware');
+const Model = require('../models/Model');
 
 // Upload model files for a request (admin only)
 router.post(
@@ -18,7 +19,7 @@ router.post(
     console.log('Middleware - Before upload');
     next();
   },
-  uploadMiddleware.fields([
+  upload.fields([
     { name: 'glbFile', maxCount: 1 },
     { name: 'usdzFile', maxCount: 1 },
     { name: 'posterImage', maxCount: 1 }

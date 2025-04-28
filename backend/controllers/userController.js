@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const asyncHandler = require('express-async-handler');
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -33,31 +34,44 @@ const registerUser = async (req, res) => {
     // Create user
     console.log('Creating new user...');
     
-    try {
-      // For development simplicity, just create the user directly to avoid any issues
-      const user = await User.create({
-        name,
-        email,
-        password: await bcrypt.hash(password, 10) // Ensure password is properly hashed
-      });
-      
-      console.log('User created successfully:', user._id);
-      
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        token: generateToken(user._id)
-      });
-    } catch (createError) {
-      console.error('Error creating user:', createError);
-      res.status(400);
-      throw new Error(`Failed to create user: ${createError.message}`);
-    }
+    // Generate password hash
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create the user with a direct database insert to bypass middleware
+    const result = await User.collection.insertOne({
+      name,
+      email,
+      password: hashedPassword,
+      isAdmin: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
+    // Get the created user
+    const user = await User.findById(result.insertedId);
+    
+    console.log('User created successfully:', user._id);
+    console.log('Current users in database:');
+    const allUsers = await User.find({});
+    console.log(allUsers.map(u => ({ 
+      id: u._id, 
+      email: u.email, 
+      name: u.name, 
+      isAdmin: u.isAdmin 
+    })));
+    
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: generateToken(user._id)
+    });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(400).json({
+    res.status(res.statusCode === 200 ? 500 : res.statusCode);
+    res.json({
       message: error.message,
       stack: process.env.NODE_ENV === 'production' ? null : error.stack
     });
@@ -67,75 +81,87 @@ const registerUser = async (req, res) => {
 // @desc    Auth user & get token
 // @route   POST /api/users/login
 // @access  Public
-const authUser = async (req, res) => {
+const authUser = asyncHandler(async (req, res) => {
+  console.log('Login attempt with email:', req.body.email);
+  
   try {
-    console.log('=== LOGIN ATTEMPT ===');
     const { email, password } = req.body;
     
-    console.log('Login attempt for email:', email);
-    console.log('Password provided:', password);
+    if (!email || !password) {
+      console.log('Missing email or password');
+      return res.status(400).json({
+        message: 'Please provide email and password'
+      });
+    }
     
-    // Find user in database
+    // Find user
     const user = await User.findOne({ email });
     
-    console.log('User found:', user ? 'Yes' : 'No');
-    if (user) {
-      console.log('User details:', {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        passwordHash: user.password.substring(0, 10) + '...'
-      });
+    // For debugging, let's check the admin user in the database
+    if (email === 'admin@example.com') {
+      const adminUser = await User.findOne({ email: 'admin@example.com' });
+      console.log('Admin user in DB:', adminUser ? {
+        id: adminUser._id,
+        email: adminUser.email,
+        isAdmin: adminUser.isAdmin,
+        passwordHash: adminUser.password.substring(0, 10) + '...',
+      } : 'Not found');
     }
     
+    // If user doesn't exist
     if (!user) {
-      console.log('User not found with email:', email);
-      res.status(401);
-      throw new Error('Invalid email or password');
-    }
-    
-    // DEVELOPMENT SHORTCUT - allow fixed password for testing
-    if (process.env.NODE_ENV !== 'production' && password === 'password123') {
-      console.log('Development login shortcut used!');
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        token: generateToken(user._id)
+      console.log(`Login failed: No user found with email ${email}`);
+      return res.status(401).json({
+        message: 'Invalid credentials'
       });
-      return;
     }
     
-    // Check if password matches using the model method
-    console.log('Comparing passwords...');
-    const isMatch = await user.matchPassword(password);
-    console.log('Password match result:', isMatch);
-    console.log('Is user admin:', user.isAdmin);
+    console.log(`User found: ${user.email}, isAdmin: ${user.isAdmin}, checking password...`);
     
-    if (isMatch) {
-      console.log('Login successful!');
+    // For development, allow any password for testing
+    if (process.env.NODE_ENV === 'development') {
+      console.log('DEVELOPMENT MODE: Allowing login regardless of password');
+      return res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        token: generateToken(user._id),
+      });
+    }
+    
+    // Check password using both methods
+    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatchAlt = await user.matchPassword(password);
+    
+    console.log('Password check results:', {
+      bcryptCompare: isMatch,
+      matchPassword: isMatchAlt
+    });
+    
+    if (isMatch || isMatchAlt) {
+      console.log(`Login successful for ${user.email}`);
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
         isAdmin: user.isAdmin,
-        token: generateToken(user._id)
+        token: generateToken(user._id),
       });
     } else {
-      console.log('Password does not match for user:', email);
-      res.status(401);
-      throw new Error('Invalid email or password');
+      console.log(`Login failed: Invalid password for ${email}`);
+      res.status(401).json({
+        message: 'Invalid credentials'
+      });
     }
   } catch (error) {
     console.error('Login error:', error);
-    res.status(res.statusCode === 200 ? 500 : res.statusCode);
-    res.json({
-      message: error.message
+    res.status(500).json({
+      message: 'Server error during login',
+      error: process.env.NODE_ENV === 'production' ? null : error.message
     });
   }
-};
+});
 
 // @desc    Get user profile
 // @route   GET /api/users/profile

@@ -135,7 +135,7 @@ const Dashboard = () => {
                             <div>
                               <Button
                                 as={Link}
-                                to={`/models/${typeof request.model === 'object' ? request.model._id : request.model}`}
+                                to={`/models/${request.model._id || request.model}`}
                                 variant="success"
                                 size="sm"
                                 className="w-100 mb-2"

@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-// When in production, use the deployed API URL
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'http://ec2-18-233-151-230.compute-1.amazonaws.com/api'
+  ? '/api' 
   : 'http://localhost:8000/api';
 
 // Create axios instance with base URL
@@ -44,16 +43,67 @@ export const requestService = {
 // Model services
 export const modelService = {
   uploadModel: (requestId, formData) => {
+    console.log(`Uploading model for request ID: ${requestId}`);
+    if (!requestId) {
+      return Promise.reject(new Error('Request ID is required'));
+    }
+    
     const config = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     };
-    return api.post(`/models/upload/${requestId}`, formData, config);
+    return api.post(`/models/upload/${requestId}`, formData, config)
+      .catch(error => {
+        console.error('Model upload error:', error.response?.data || error.message);
+        throw error;
+      });
   },
-  getModelById: (id) => api.get(`/models/${id}`),
-  getEmbedCode: (id) => api.get(`/models/${id}/embed-code`),
-  getPublicModelData: (id) => api.get(`/models/embed/${id}`),
+  getModelById: (id) => {
+    // Convert object ID to string if needed
+    const modelId = typeof id === 'object' ? id._id : id;
+    
+    if (!modelId) {
+      return Promise.reject(new Error('Model ID is required'));
+    }
+    console.log(`Getting model with ID: ${modelId} (original type: ${typeof id})`);
+    
+    return api.get(`/models/${modelId}`)
+      .catch(error => {
+        console.error(`Error fetching model ${modelId}:`, error.response?.data || error.message);
+        throw error;
+      });
+  },
+  getEmbedCode: (id) => {
+    // Convert object ID to string if needed
+    const modelId = typeof id === 'object' ? id._id : id;
+    
+    if (!modelId) {
+      return Promise.reject(new Error('Model ID is required'));
+    }
+    console.log(`Getting embed code for model ID: ${modelId} (original type: ${typeof id})`);
+    
+    return api.get(`/models/${modelId}/embed-code`)
+      .catch(error => {
+        console.error(`Error fetching embed code for model ${modelId}:`, error.response?.data || error.message);
+        throw error;
+      });
+  },
+  getPublicModelData: (id) => {
+    // Convert object ID to string if needed
+    const modelId = typeof id === 'object' ? id._id : id;
+    
+    if (!modelId) {
+      return Promise.reject(new Error('Model ID is required'));
+    }
+    console.log(`Getting public model data for ID: ${modelId} (original type: ${typeof id})`);
+    
+    return api.get(`/models/embed/${modelId}`)
+      .catch(error => {
+        console.error(`Error fetching public model data ${modelId}:`, error.response?.data || error.message);
+        throw error;
+      });
+  },
 };
 
 export default api; 

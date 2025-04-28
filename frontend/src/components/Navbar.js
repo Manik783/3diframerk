@@ -15,7 +15,7 @@ const Navbar = () => {
   return (
     <BootstrapNavbar variant="dark" expand="lg" className="mb-4" style={{ backgroundColor: '#000000', borderBottom: '1px solid #647881' }}>
       <Container>
-        <BootstrapNavbar.Brand as={Link} to="/" style={{ color: '#FFF4E2', fontWeight: 'bold' }}>
+        <BootstrapNavbar.Brand as={Link} to="/" style={{ color: '#FFF4E2' }}>
           <i className="bi bi-cube-fill me-2"></i>
           3D Model Platform
         </BootstrapNavbar.Brand>
@@ -44,12 +44,7 @@ const Navbar = () => {
                 <Nav.Item className="d-flex align-items-center me-3" style={{ color: '#FFF4E2' }}>
                   <i className="bi bi-person-circle me-1"></i> Welcome, {user.name}
                 </Nav.Item>
-                <Button 
-                  variant="outline-light" 
-                  onClick={handleLogout} 
-                  style={{ borderColor: '#647881', color: '#FFF4E2', backgroundColor: 'transparent' }}
-                  className="hover-effect"
-                >
+                <Button variant="outline-light" onClick={handleLogout} style={{ borderColor: '#647881', color: '#FFF4E2' }}>
                   <i className="bi bi-box-arrow-right me-1"></i> Logout
                 </Button>
               </>

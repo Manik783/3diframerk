@@ -6,6 +6,8 @@ const path = require('path');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const morgan = require('morgan');
 
 // Load environment variables
 dotenv.config();
@@ -13,55 +15,176 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// CORS configuration
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://frontend-l1x8iuqsj-lakshay-chetals-projects.vercel.app', 'https://3d-iframe.vercel.app'] 
-    : 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
-
 // Middleware
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL || 'https://shopxar-frontend.onrender.com', process.env.BACKEND_URL || 'https://shopxar-backend.onrender.com'] 
+    : ['http://localhost:3000', 'http://localhost:8000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Logging middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
+}
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  console.log('Creating uploads directory:', uploadsDir);
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Create temp directory if it doesn't exist
+const tempDir = path.join(__dirname, 'temp');
+if (!fs.existsSync(tempDir)) {
+  console.log('Creating temp directory:', tempDir);
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+
 // Serve uploads directory for 3D model files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve root index.html for testing if nothing else works
-app.use('/test', express.static(path.join(__dirname, '..')));
+console.log('Uploads directory path:', path.join(__dirname, 'uploads'));
 
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const modelRoutes = require('./routes/modelRoutes');
+const embedRoutes = require('./routes/embedRoutes');
 
 // API routes
 app.use('/api/users', userRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/models', modelRoutes);
+app.use('/embed', embedRoutes); // Note: no /api prefix for embed routes
 
-// Connect to MongoDB Atlas for production or In-Memory MongoDB for development
-const startServer = async () => {
+// Serve uploads directory for local file storage fallback
+const setupUploadsDirectory = () => {
+  const uploadDir = process.env.UPLOAD_DIR || 'backend/uploads';
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log(`Created uploads directory: ${uploadDir}`);
+  }
+  return uploadDir;
+};
+
+app.use('/api/uploads', express.static(setupUploadsDirectory()));
+
+// Create a simple default route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to ShopXAR API',
+    documentation: '/api-docs',
+    status: 'running'
+  });
+});
+
+// Additional /embed/:modelId route for direct model embedding
+app.get('/embed/:modelId', async (req, res) => {
   try {
-    // Use MongoDB Atlas in production or with MONGODB_URI, otherwise use in-memory MongoDB
-    if (process.env.MONGODB_URI) {
-      await mongoose.connect(process.env.MONGODB_URI);
-      console.log('MongoDB Atlas connected');
-    } else {
-      const mongoServer = await MongoMemoryServer.create();
-      const mongoUri = mongoServer.getUri();
-      await mongoose.connect(mongoUri);
-      console.log('MongoDB In-Memory connected (development)');
+    const { modelId } = req.params;
+    
+    console.log(`Direct model embedding request for model: ${modelId}`);
+    
+    // Get model from database
+    const Model = require('./models/Model');
+    const model = await Model.findById(modelId);
+    
+    if (!model) {
+      console.error(`Model not found with ID: ${modelId}`);
+      return res.status(404).send('Model not found');
     }
     
-    // Enable mongoose debugging
-    mongoose.set('debug', process.env.NODE_ENV !== 'production');
+    // Generate and send HTML with model-viewer
+    const modelUrl = model.glbFile;
+    const usdzUrl = model.usdzFile;
+    const posterUrl = model.posterImage;
     
-    // Create an admin user for testing
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('X-Frame-Options', 'ALLOWALL'); // Allow embedding in iframes
+    
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>3D Model Viewer</title>
+        <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+        <style>
+          body, html { margin: 0; height: 100%; }
+          model-viewer { width: 100%; height: 100vh; }
+        </style>
+      </head>
+      <body>
+        <model-viewer 
+          src="${modelUrl}" 
+          ${usdzUrl ? `ios-src="${usdzUrl}"` : ''}
+          ${posterUrl ? `poster="${posterUrl}"` : ''}
+          alt="3D model" 
+          auto-rotate 
+          camera-controls
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          shadow-intensity="1">
+        </model-viewer>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('Error serving embed HTML:', error);
+    res.status(500).send('Error loading model viewer');
+  }
+});
+
+// Development route to see all users 
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/dev/users', async (req, res) => {
+    try {
+      const User = require('./models/User');
+      const users = await User.find({});
+      res.json({
+        count: users.length,
+        users: users.map(u => ({
+          id: u._id,
+          name: u.name,
+          email: u.email,
+          isAdmin: u.isAdmin,
+          passwordLength: u.password?.length || 0
+        }))
+      });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+}
+
+// Connect to MongoDB database
+const startServer = async () => {
+  try {
+    // Connect to MongoDB using the URI from .env
+    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/3dmodels';
+    
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('MongoDB connected:', mongoUri);
+    
+    // Enable mongoose debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      mongoose.set('debug', true);
+    }
+    
+    // Create an admin user for testing if it doesn't exist
     const User = require('./models/User');
     
     // Create fixed password hashes to ensure consistency
@@ -82,6 +205,8 @@ const startServer = async () => {
           updatedAt: new Date()
         });
         console.log('Admin user created with hardcoded password');
+      } else {
+        console.log('Admin user already exists');
       }
       
       // Create test user
@@ -97,6 +222,8 @@ const startServer = async () => {
           updatedAt: new Date()
         });
         console.log('Test user created with hardcoded password');
+      } else {
+        console.log('Test user already exists');
       }
       
       console.log('User credentials:');
@@ -108,25 +235,9 @@ const startServer = async () => {
     
     // Serve frontend in production
     if (process.env.NODE_ENV === 'production') {
-      // First try to serve from frontend/build
       app.use(express.static(path.join(__dirname, '../frontend/build')));
       
-      // Also serve the root index.html as a fallback
-      app.get('/', (req, res) => {
-        const rootIndexPath = path.join(__dirname, '../index.html');
-        if (require('fs').existsSync(rootIndexPath)) {
-          res.sendFile(rootIndexPath);
-        } else {
-          res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
-        }
-      });
-      
-      // Serve frontend routes
       app.get('*', (req, res) => {
-        // Skip API routes
-        if (req.path.startsWith('/api/')) return;
-        
-        // Try to send the frontend build index
         res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
       });
     }
@@ -135,13 +246,14 @@ const startServer = async () => {
     app.use(notFound);
     app.use(errorHandler);
     
-    // Start server
-    const PORT = process.env.PORT || 5001;
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    // Start server with dynamic port
+    const PORT = process.env.PORT || 8000;
+    const server = app.listen(PORT, () => {
+      console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
     });
   } catch (error) {
     console.error('Error starting server:', error);
+    process.exit(1);
   }
 };
 

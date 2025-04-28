@@ -9,7 +9,7 @@ const Home = () => {
   return (
     <div>
       {/* Hero Section */}
-      <div style={{ backgroundColor: '#000000', borderBottom: '1px solid #647881' }} className="text-white py-5">
+      <div style={{ backgroundColor: '#000000', borderBottom: '1px solid #647881' }} className="py-5">
         <Container>
           <Row className="align-items-center">
             <Col md={6}>
@@ -19,15 +19,33 @@ const Home = () => {
                 Our platform makes it easy to manage 3D content across your digital properties.
               </p>
               {isAuthenticated ? (
-                <Button as={Link} to="/dashboard" style={{ backgroundColor: '#647881', borderColor: '#647881' }} size="lg" className="me-3">
+                <Button 
+                  as={Link} 
+                  to="/dashboard" 
+                  size="lg" 
+                  className="me-3"
+                  style={{ backgroundColor: '#647881', borderColor: '#647881' }}
+                >
                   Go to Dashboard
                 </Button>
               ) : (
                 <>
-                  <Button as={Link} to="/register" style={{ backgroundColor: '#647881', borderColor: '#647881', color: '#FFFFFF' }} size="lg" className="me-3">
+                  <Button 
+                    as={Link} 
+                    to="/register" 
+                    size="lg" 
+                    className="me-3"
+                    style={{ backgroundColor: '#647881', borderColor: '#647881', color: '#FFFFFF' }}
+                  >
                     Sign Up
                   </Button>
-                  <Button as={Link} to="/login" variant="outline-light" size="lg" style={{ borderColor: '#647881' }}>
+                  <Button 
+                    as={Link} 
+                    to="/login" 
+                    variant="outline-light" 
+                    size="lg"
+                    style={{ borderColor: '#647881', color: '#FFF4E2' }}
+                  >
                     Login
                   </Button>
                 </>
@@ -99,11 +117,21 @@ const Home = () => {
             Join now and start submitting your 3D model requests
           </p>
           {isAuthenticated ? (
-            <Button as={Link} to="/requests/new" style={{ backgroundColor: '#647881', borderColor: '#647881' }} size="lg">
+            <Button 
+              as={Link} 
+              to="/requests/new" 
+              size="lg"
+              style={{ backgroundColor: '#647881', borderColor: '#647881' }}
+            >
               Submit Your First Request
             </Button>
           ) : (
-            <Button as={Link} to="/register" style={{ backgroundColor: '#647881', borderColor: '#647881' }} size="lg">
+            <Button 
+              as={Link} 
+              to="/register" 
+              size="lg"
+              style={{ backgroundColor: '#647881', borderColor: '#647881' }}
+            >
               Create an Account
             </Button>
           )}
