@@ -23,7 +23,7 @@ const allowedOrigins = [
   'https://shopxar-backend.onrender.com'
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -37,13 +37,15 @@ app.use(cors({
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
-}));
+};
 
-// Use CORS middleware
+// Use CORS middleware ONCE with the options
 app.use(cors(corsOptions));
 
 // Handle Preflight requests properly
 app.options('*', cors(corsOptions));
+
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
