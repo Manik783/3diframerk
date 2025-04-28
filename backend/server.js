@@ -25,29 +25,31 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
       'http://localhost:8000'
     ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.error(`Blocked CORS request from: ${origin}`);
+      return callback(new Error('Not allowed by CORS'), false);
     }
-    return callback(null, true);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
-}));
+};
 
-// Handle Preflight requests
-app.options('*', cors());
+// Use CORS middleware
+app.use(cors(corsOptions));
+
+// Handle Preflight requests properly
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
