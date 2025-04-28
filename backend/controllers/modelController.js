@@ -221,14 +221,15 @@ const uploadModelFiles = asyncHandler(async (req, res) => {
     });
     
     // Update the embed code with the actual model ID
-    model.embedCode = `<iframe 
-  src="${baseUrl}/embed/${model._id}" 
-  width="600" 
-  height="400" 
-  frameborder="0" 
-  allowfullscreen
-  allow="autoplay; fullscreen; ar; xr"
-></iframe>`;
+    const modelUrl = `https://threediframerk.onrender.com/embed/${model._id}`;
+    model.embedCode = `<div style="position: relative; width: 100%; padding-top: 75%; overflow: hidden;">
+  <iframe 
+    src="${modelUrl}"
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+    allowfullscreen
+    allow="autoplay; fullscreen; ar; xr">
+  </iframe>
+</div>`;
     
     await model.save();
     
