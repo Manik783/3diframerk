@@ -40,3 +40,7 @@ backend/uploads/
 .vscode/
 *.swp
 *.swo
+
+# deployment files
+*.zip
+*.tar.gz
