@@ -163,9 +163,8 @@ const EmbedCode = () => {
                 <Button
                   variant="primary"
                   onClick={() => {
-                    const userId = model.uploadedBy && model.uploadedBy._id ? model.uploadedBy._id : model.uploadedBy;
-                    const baseUrl = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:8000';
-                    window.open(`${baseUrl}/embed/${userId}/${modelId}`, '_blank');
+                    const baseUrl = 'https://threediframerk.onrender.com';
+                    window.open(`${baseUrl}/embed/${modelId}`, '_blank');
                   }}
                 >
                   Preview Embed

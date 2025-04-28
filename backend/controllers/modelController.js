@@ -200,9 +200,7 @@ const uploadModelFiles = asyncHandler(async (req, res) => {
     }
     
     // Generate the embed code for the model
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? process.env.BASE_URL || 'https://yourdeployedapp.com'
-      : 'http://localhost:3000';
+    const baseUrl = 'https://threediframerk.onrender.com';
     
     // Create model in database
     console.log('Creating model in database');
