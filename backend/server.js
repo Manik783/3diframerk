@@ -16,18 +16,38 @@ dotenv.config();
 const app = express();
 
 // Middleware
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [
+      process.env.FRONTEND_URL || 'https://frontend-seven-omega-33.vercel.app'
+    ]
+  : [
+      'http://localhost:3000',
+      'http://localhost:8000'
+    ];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['http://localhost:3000', 'https://frontend-seven-omega-33.vercel.app', process.env.FRONTEND_URL || 'https://shopxar-frontend.onrender.com', process.env.BACKEND_URL || 'https://shopxar-backend.onrender.com'] 
-    : ['http://localhost:3000', 'http://localhost:8000'],
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
+
+// Handle Preflight requests
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
