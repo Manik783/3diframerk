@@ -16,23 +16,20 @@ dotenv.config();
 const app = express();
 
 // Middleware
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [
-      process.env.FRONTEND_URL || 'https://frontend-seven-omega-33.vercel.app'
-    ]
-  : [
-      'http://localhost:3000',
-      'http://localhost:8000'
-    ];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://frontend-seven-omega-33.vercel.app',
+  'https://shopxar-frontend.onrender.com',
+  'https://shopxar-backend.onrender.com'
+];
 
-const corsOptions = {
+app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     } else {
-      console.error(`Blocked CORS request from: ${origin}`);
-      return callback(new Error('Not allowed by CORS'), false);
+      return callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -40,7 +37,7 @@ const corsOptions = {
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
-};
+}));
 
 // Use CORS middleware
 app.use(cors(corsOptions));
