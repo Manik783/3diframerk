@@ -1,30 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const Model = require('../models/Model');
-const User = require('../models/User');
 const { generateModelViewerHTML } = require('../views/modelViewer');
 
 /**
- * @route   GET /embed/:userId/:modelId
+ * @route   GET /embed/:modelId
  * @desc    Render HTML page with model-viewer for the 3D model
  * @access  Public
  */
-router.get('/:userId/:modelId', async (req, res) => {
+router.get('/:modelId', async (req, res) => {
   try {
-    const { userId, modelId } = req.params;
+    const { modelId } = req.params;
     
-    console.log(`Rendering embed for user: ${userId}, model: ${modelId}`);
+    console.log(`Rendering embed for model: ${modelId}`);
     
-    // Validate both IDs
-    if (!userId || !modelId) {
-      return res.status(400).send('Invalid request: Missing user ID or model ID');
-    }
-    
-    // Check if user exists
-    const user = await User.findById(userId);
-    if (!user) {
-      console.error(`User not found with ID: ${userId}`);
-      return res.status(404).send('User not found');
+    // Validate model ID
+    if (!modelId) {
+      return res.status(400).send('Invalid request: Missing model ID');
     }
     
     // Get model details
@@ -42,7 +34,7 @@ router.get('/:userId/:modelId', async (req, res) => {
     });
     
     // Generate and send HTML
-    const html = generateModelViewerHTML(model, userId);
+    const html = generateModelViewerHTML(model);
     
     // Set appropriate headers
     res.setHeader('Content-Type', 'text/html');

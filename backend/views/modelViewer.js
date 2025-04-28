@@ -1,10 +1,9 @@
 /**
  * Generates HTML for the model viewer page
  * @param {Object} model - The model object with file URLs
- * @param {String} userId - The user ID associated with the model
  * @returns {String} - Complete HTML for the model viewer
  */
-const generateModelViewerHTML = (model, userId) => {
+const generateModelViewerHTML = (model) => {
   return `
 <!DOCTYPE html>
 <html lang="en">

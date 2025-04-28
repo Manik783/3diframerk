@@ -43,11 +43,13 @@ const upload = multer({
 
 // Generate embed code for a model
 const generateEmbedCode = (model) => {
+  const baseUrl = process.env.NODE_ENV === 'production' 
+    ? 'https://threediframerk.onrender.com'
+    : 'http://localhost:3000';
+    
   return `<iframe
     style="width: 100%; height: 500px; border: none;"
-    src="${process.env.NODE_ENV === 'production' 
-      ? '${window.location.origin}' 
-      : 'http://localhost:3000'}/embed/${model._id}"
+    src="${baseUrl}/embed/${model._id}"
     allow="autoplay; fullscreen; ar; xr"
     scrolling="no"
     frameborder="0"

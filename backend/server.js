@@ -18,7 +18,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://shopxar-frontend.onrender.com', process.env.BACKEND_URL || 'https://shopxar-backend.onrender.com'] 
+    ? ['http://localhost:3000', process.env.FRONTEND_URL || 'https://shopxar-frontend.onrender.com', process.env.BACKEND_URL || 'https://shopxar-backend.onrender.com'] 
     : ['http://localhost:3000', 'http://localhost:8000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -173,11 +173,13 @@ const startServer = async () => {
     // Connect to MongoDB using the URI from .env
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/3dmodels';
     
+    console.log('Attempting to connect to MongoDB with URI:', mongoUri);
+    
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    console.log('MongoDB connected:', mongoUri);
+    console.log('MongoDB connected successfully');
     
     // Enable mongoose debugging in development
     if (process.env.NODE_ENV === 'development') {
@@ -194,6 +196,8 @@ const startServer = async () => {
     // Create admin user (directly with hashed password to bypass hashing)
     try {
       const adminExists = await User.findOne({ email: 'admin@example.com' });
+      console.log('Admin user exists:', adminExists ? 'Yes' : 'No');
+      
       if (!adminExists) {
         // Create admin directly in the database
         await User.collection.insertOne({
@@ -204,33 +208,10 @@ const startServer = async () => {
           createdAt: new Date(),
           updatedAt: new Date()
         });
-        console.log('Admin user created with hardcoded password');
-      } else {
-        console.log('Admin user already exists');
+        console.log('Admin user created successfully');
       }
-      
-      // Create test user
-      const testUserExists = await User.findOne({ email: 'user@example.com' });
-      if (!testUserExists) {
-        // Create test user directly in the database
-        await User.collection.insertOne({
-          name: 'Test User',
-          email: 'user@example.com',
-          password: userPassword,
-          isAdmin: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-        console.log('Test user created with hardcoded password');
-      } else {
-        console.log('Test user already exists');
-      }
-      
-      console.log('User credentials:');
-      console.log('Admin: admin@example.com / password123');
-      console.log('User: user@example.com / password123');
-    } catch (err) {
-      console.error('Error creating users:', err);
+    } catch (error) {
+      console.error('Error creating admin user:', error);
     }
     
     // Serve frontend in production
@@ -246,13 +227,14 @@ const startServer = async () => {
     app.use(notFound);
     app.use(errorHandler);
     
-    // Start server with dynamic port
+    // Start the server
     const PORT = process.env.PORT || 8000;
-    const server = app.listen(PORT, () => {
-      console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    app.listen(PORT, () => {
+      console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+      console.log('API URL:', `http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('Error starting server:', error);
+    console.error('MongoDB connection error:', error);
     process.exit(1);
   }
 };
