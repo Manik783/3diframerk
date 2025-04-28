@@ -16,16 +16,37 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['http://localhost:3000', 'https://frontend-seven-omega-33.vercel.app', process.env.FRONTEND_URL || 'https://shopxar-frontend.onrender.com', process.env.BACKEND_URL || 'https://shopxar-backend.onrender.com'] 
-    : ['http://localhost:3000', 'http://localhost:8000'],
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://frontend-seven-omega-33.vercel.app',
+  'https://shopxar-frontend.onrender.com',
+  'https://shopxar-backend.onrender.com'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
-}));
+};
+
+// Use CORS middleware ONCE with the options
+app.use(cors(corsOptions));
+
+// Handle Preflight requests properly
+app.options('*', cors(corsOptions));
+
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
