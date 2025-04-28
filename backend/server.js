@@ -18,7 +18,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['http://localhost:3000', process.env.FRONTEND_URL || 'https://shopxar-frontend.onrender.com', process.env.BACKEND_URL || 'https://shopxar-backend.onrender.com'] 
+    ? ['http://localhost:3000', 'https://frontend-seven-omega-33.vercel.app', process.env.FRONTEND_URL || 'https://shopxar-frontend.onrender.com', process.env.BACKEND_URL || 'https://shopxar-backend.onrender.com'] 
     : ['http://localhost:3000', 'http://localhost:8000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
