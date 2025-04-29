@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Table, Badge, Button, Alert, Form, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { requestService } from '../services/api';
@@ -16,10 +16,12 @@ const AdminPanel = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
+    let isMounted = true;
+    
     try {
       setLoading(true);
-      console.log('Fetching requests with sort:', sort);
+      setError('');
       
       const response = await requestService.getAllRequests({
         search,
@@ -29,29 +31,54 @@ const AdminPanel = () => {
         page
       });
       
+      if (!isMounted) return;
+      
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to load requests');
       }
       
-      console.log('Received requests:', response.data.data.requests);
       setRequests(response.data.data.requests);
       setTotalPages(response.data.data.pagination.pages);
       setStats(response.data.data.stats);
-      setError('');
     } catch (error) {
+      if (!isMounted) return;
       console.error('Error fetching requests:', error);
       setError(error.message || 'Failed to load requests. Please try again.');
+      // Reset data on error
+      setRequests([]);
+      setStats({});
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
-  };
+  }, [search, statusFilter, fileFilter, sort, page]); // Dependencies for useCallback
   
   useEffect(() => {
-    fetchRequests();
-  }, [search, statusFilter, fileFilter, sort, page]);
+    let timeoutId;
+    const debounceTime = 500; // 500ms debounce
+    
+    // Clear any pending timeout
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    
+    // Set new timeout for fetching
+    timeoutId = setTimeout(() => {
+      fetchRequests();
+    }, debounceTime);
+    
+    // Cleanup function
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [fetchRequests]); // Only depend on the memoized fetchRequests
   
   const handleStatusChange = async (requestId, newStatus) => {
     try {
+      setError('');
       await requestService.updateRequestStatus(requestId, newStatus);
       fetchRequests();
     } catch (error) {
@@ -61,7 +88,6 @@ const AdminPanel = () => {
   
   const handleSortChange = (e) => {
     const newSort = e.target.value;
-    console.log('Changing sort to:', newSort);
     setSort(newSort);
   };
   

@@ -8,7 +8,8 @@ const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 30000, // 30 second timeout
 });
 
 // Add interceptor to add auth token to requests
@@ -21,6 +22,31 @@ api.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+// Add response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED') {
+      // Handle timeout
+      return Promise.reject(new Error('Request timed out. Please try again.'));
+    }
+    
+    if (!error.response) {
+      // Network error
+      return Promise.reject(new Error('Network error. Please check your connection.'));
+    }
+    
+    if (error.response.status === 401) {
+      // Unauthorized - clear token and redirect to login
+      localStorage.removeItem('userToken');
+      window.location.href = '/login';
+      return Promise.reject(new Error('Session expired. Please login again.'));
+    }
+    
+    return Promise.reject(error);
+  }
 );
 
 // Auth services
@@ -36,18 +62,21 @@ export const requestService = {
   getUserRequests: () => api.get('/requests/my'),
   getRequestById: (id) => api.get(`/requests/${id}`),
   getAllRequests: async (params = {}) => {
-    const queryParams = new URLSearchParams();
-    
-    if (params.search) queryParams.append('search', params.search);
-    if (params.status && params.status !== 'All') queryParams.append('status', params.status);
-    if (params.fileFilter && params.fileFilter !== 'All') queryParams.append('fileFilter', params.fileFilter);
-    if (params.sort) queryParams.append('sort', params.sort);
-    if (params.page) queryParams.append('page', params.page);
-    
-    console.log('Making request with params:', params);
-    const url = `/requests${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    console.log('Request URL:', url);
-    return api.get(url);
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (params.search) queryParams.append('search', params.search);
+      if (params.status && params.status !== 'All') queryParams.append('status', params.status);
+      if (params.fileFilter && params.fileFilter !== 'All') queryParams.append('fileFilter', params.fileFilter);
+      if (params.sort) queryParams.append('sort', params.sort);
+      if (params.page) queryParams.append('page', params.page);
+      
+      const url = `/requests${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      return await api.get(url);
+    } catch (error) {
+      console.error('Error in getAllRequests:', error);
+      throw error;
+    }
   },
   updateRequestStatus: (id, status) => api.put(`/requests/${id}/status`, { status }),
 };
