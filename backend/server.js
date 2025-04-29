@@ -15,38 +15,27 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Middleware
+// CORS configuration
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://frontend-seven-omega-33.vercel.app',
-  'https://shopxar-frontend.onrender.com',
-  'https://shopxar-backend.onrender.com'
+  process.env.FRONTEND_URL || 'https://shopxar-frontend.vercel.app',
+  'http://localhost:3000'
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     }
+    return callback(null, true);
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
+  credentials: true
+}));
 
-// Use CORS middleware ONCE with the options
-app.use(cors(corsOptions));
-
-// Handle Preflight requests properly
-app.options('*', cors(corsOptions));
-
-
-
+// Then add other middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -210,30 +199,83 @@ const startServer = async () => {
     // Create an admin user for testing if it doesn't exist
     const User = require('./models/User');
     
-    // Create fixed password hashes to ensure consistency
-    const adminPassword = '$2a$10$JwSJBqD.WfPiJfW4QZF.3eMsGlQwAZKcmvkxrHCwKYjLlXwGgC49y'; // password123
-    const userPassword = '$2a$10$JwSJBqD.WfPiJfW4QZF.3eMsGlQwAZKcmvkxrHCwKYjLlXwGgC49y'; // password123
-    
-    // Create admin user (directly with hashed password to bypass hashing)
-    try {
-      const adminExists = await User.findOne({ email: 'admin@example.com' });
-      console.log('Admin user exists:', adminExists ? 'Yes' : 'No');
-      
-      if (!adminExists) {
-        // Create admin directly in the database
-        await User.collection.insertOne({
-          name: 'Admin User',
-          email: 'admin@example.com',
-          password: adminPassword,
-          isAdmin: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-        console.log('Admin user created successfully');
+    // Create admin user if it doesn't exist
+    const createAdminUser = async () => {
+      try {
+        const adminExists = await User.findOne({ email: 'admin@example.com' });
+        
+        if (!adminExists) {
+          console.log('Creating admin user...');
+          const admin = new User({
+            name: 'Admin',
+            email: 'admin@example.com',
+            password: 'admin123',
+            isAdmin: true
+          });
+          
+          await admin.save();
+          console.log('✅ Admin user created successfully');
+          
+          // Verify the password was hashed
+          const savedAdmin = await User.findOne({ email: 'admin@example.com' }).select('+password');
+          console.log('Admin user details:', {
+            name: savedAdmin.name,
+            email: savedAdmin.email,
+            isAdmin: savedAdmin.isAdmin,
+            hasPassword: !!savedAdmin.password
+          });
+        } else {
+          console.log('Admin user already exists');
+        }
+      } catch (error) {
+        console.error('❌ Error creating admin user:', error);
       }
-    } catch (error) {
-      console.error('Error creating admin user:', error);
-    }
+    };
+
+    // Create test user if it doesn't exist
+    const createTestUser = async () => {
+      try {
+        // First, try to find existing test user
+        const testUser = await User.findOne({ email: 'test@example.com' });
+        
+        if (testUser) {
+          console.log('⚠️ Found existing test user, deleting to recreate...');
+          await User.deleteOne({ email: 'test@example.com' });
+        }
+        
+        console.log('Creating test user...');
+        const newTestUser = new User({
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'password123', // Will be hashed by the pre-save middleware
+          isAdmin: false
+        });
+        
+        // Save test user (this will trigger password hashing)
+        await newTestUser.save();
+        
+        // Verify the password was hashed
+        const savedTestUser = await User.findOne({ email: 'test@example.com' }).select('+password');
+        console.log('✅ Test user created successfully:', {
+          name: savedTestUser.name,
+          email: savedTestUser.email,
+          isAdmin: savedTestUser.isAdmin,
+          passwordHash: savedTestUser.password.substring(0, 10) + '...' // Show first 10 chars of hash
+        });
+        
+      } catch (error) {
+        console.error('Error creating test user:', error);
+      }
+    };
+
+    // Call the function after database connection
+    mongoose.connection.once('open', () => {
+      console.log('Connected to MongoDB');
+      createAdminUser();
+    });
+    
+    // Create test user if it doesn't exist
+    createTestUser();
     
     // Serve frontend in production
     if (process.env.NODE_ENV === 'production') {

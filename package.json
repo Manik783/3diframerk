@@ -1,6 +1,7 @@
 {
   "name": "shopxar-backend",
   "version": "1.0.0",
+  "description": "Backend for ShopXAR 3D Model Platform",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
@@ -14,7 +15,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "3D model request platform with embed code generation",
   "dependencies": {
     "aws-sdk": "^2.1370.0",
     "bcrypt": "^5.1.1",

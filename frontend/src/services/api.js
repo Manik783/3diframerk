@@ -1,12 +1,11 @@
 import axios from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? '/api' 
-  : 'https://threediframerk.onrender.com/api';
+// Base API URL from environment variable
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -34,9 +33,22 @@ export const authService = {
 // Request services
 export const requestService = {
   createRequest: (requestData) => api.post('/requests', requestData),
-  getUserRequests: () => api.get('/requests'),
+  getUserRequests: () => api.get('/requests/my'),
   getRequestById: (id) => api.get(`/requests/${id}`),
-  getAllRequests: () => api.get('/requests/all'),
+  getAllRequests: async (params = {}) => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.search) queryParams.append('search', params.search);
+    if (params.status && params.status !== 'All') queryParams.append('status', params.status);
+    if (params.fileFilter && params.fileFilter !== 'All') queryParams.append('fileFilter', params.fileFilter);
+    if (params.sort) queryParams.append('sort', params.sort);
+    if (params.page) queryParams.append('page', params.page);
+    
+    console.log('Making request with params:', params);
+    const url = `/requests${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    console.log('Request URL:', url);
+    return api.get(url);
+  },
   updateRequestStatus: (id, status) => api.put(`/requests/${id}/status`, { status }),
 };
 
@@ -104,6 +116,22 @@ export const modelService = {
         throw error;
       });
   },
+};
+
+// User services
+export const userService = {
+  getAllUsers: async (params = {}) => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.search) queryParams.append('search', params.search);
+    if (params.filter && params.filter !== 'all') queryParams.append('filter', params.filter);
+    if (params.sort) queryParams.append('sort', params.sort);
+    if (params.page) queryParams.append('page', params.page);
+    
+    const url = `/users/all${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return api.get(url);
+  },
+  getUserDetails: (userId) => api.get(`/users/${userId}`),
 };
 
 export default api; 

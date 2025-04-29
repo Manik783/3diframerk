@@ -33,9 +33,14 @@ const Navbar = () => {
               </>
             )}
             {isAdmin && (
-              <Nav.Link as={Link} to="/admin" style={{ color: '#FFF4E2' }}>
-                <i className="bi bi-shield-lock me-1"></i> Admin Panel
-              </Nav.Link>
+              <>
+                <Nav.Link as={Link} to="/admin" style={{ color: '#FFF4E2' }}>
+                  <i className="bi bi-shield-lock me-1"></i> Admin Panel
+                </Nav.Link>
+                <Nav.Link as={Link} to="/admin/users" style={{ color: '#FFF4E2' }}>
+                  <i className="bi bi-people me-1"></i> Users
+                </Nav.Link>
+              </>
             )}
           </Nav>
           <Nav>

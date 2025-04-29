@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Badge, Button, Alert } from 'react-bootstrap
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { requestService } from '../services/api';
+import { format } from 'date-fns';
 
 const Dashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -14,11 +15,19 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
+        setLoading(true);
         const response = await requestService.getUserRequests();
-        setRequests(response.data);
-        setLoading(false);
+        
+        if (!response.data.success) {
+          throw new Error(response.data.message || 'Failed to load requests');
+        }
+        
+        setRequests(response.data.data);
+        setError('');
       } catch (error) {
-        setError('Failed to load your requests. Please try again.');
+        console.error('Error fetching requests:', error);
+        setError(error.message || 'Failed to load requests. Please try again.');
+      } finally {
         setLoading(false);
       }
     };
@@ -113,7 +122,7 @@ const Dashboard = () => {
                         <Col>
                           <h5 style={{ color: '#FFF4E2' }}>{request.title}</h5>
                           <p style={{ color: '#FFFFFF' }} className="mb-1">
-                            Submitted on {formatDate(request.createdAt)}
+                            Submitted on {format(new Date(request.createdAt), 'MMM d, yyyy HH:mm:ss')}
                           </p>
                           <div className="mt-2">
                             {renderStatusBadge(request.status)}

@@ -1,3 +1,47 @@
+# 3D Model Platform Frontend
+
+React frontend for the 3D model platform, providing user interface for model requests, uploads, and management.
+
+## Environment Variables
+
+```env
+REACT_APP_API_URL=https://threediframerk.onrender.com/api
+GENERATE_SOURCEMAP=false
+```
+
+## Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Create `.env.production` file with the above variables
+
+3. Start the development server:
+```bash
+npm start
+```
+
+4. Build for production:
+```bash
+npm run build
+```
+
+## Features
+
+- User authentication and management
+- 3D model request submission
+- Admin panel for model management
+- Embed code generation
+- Responsive design
+
+## Deployment
+
+This frontend is configured for deployment on Vercel.com.
+
+Current deployment: [https://frontend-seven-omega-33.vercel.app](https://frontend-seven-omega-33.vercel.app)
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

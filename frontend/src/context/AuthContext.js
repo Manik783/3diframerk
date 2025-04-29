@@ -60,19 +60,24 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await authService.login(email, password);
-      const { token, ...user } = response.data;
       
       console.log('Login response:', response.data);
-      console.log('Is admin from backend:', response.data.isAdmin);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Login failed');
+      }
+      
+      const { token, user } = response.data;
       
       // Store token and user in localStorage
       localStorage.setItem('userToken', token);
       localStorage.setItem('user', JSON.stringify(user));
       
       setUser(user);
-      return user;
+      return response.data;
     } catch (error) {
-      setError(error.response?.data?.message || 'Login failed');
+      console.error('Login error in context:', error);
+      setError(error.response?.data?.message || error.message || 'Login failed');
       throw error;
     }
   };

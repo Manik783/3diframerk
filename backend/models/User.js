@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    select: false // Don't include password by default in queries
   },
   isAdmin: {
     type: Boolean,
@@ -32,14 +33,28 @@ userSchema.pre('save', async function(next) {
     return next();
   }
   
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Method to check if entered password matches the stored hashed password
 userSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  try {
+    if (!this.password) {
+      // If password field wasn't selected in the query
+      const user = await this.constructor.findById(this._id).select('+password');
+      return await bcrypt.compare(enteredPassword, user.password);
+    }
+    return await bcrypt.compare(enteredPassword, this.password);
+  } catch (error) {
+    console.error('Error in matchPassword:', error);
+    throw new Error('Error comparing passwords');
+  }
 };
 
 const User = mongoose.model('User', userSchema);

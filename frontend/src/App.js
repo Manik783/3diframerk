@@ -18,6 +18,7 @@ import Dashboard from './pages/Dashboard';
 import NewRequest from './pages/NewRequest';
 import RequestDetail from './pages/RequestDetail';
 import AdminPanel from './pages/AdminPanel';
+import UsersManagement from './pages/UsersManagement';
 import ModelUpload from './pages/ModelUpload';
 import EmbedCode from './pages/EmbedCode';
 import ModelEmbed from './pages/ModelEmbed';
@@ -51,6 +52,7 @@ const AppContent = () => {
             {/* Admin Routes (require admin permission) */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/users" element={<UsersManagement />} />
               <Route path="/admin/requests/:requestId" element={<RequestDetail />} />
               <Route path="/admin/upload/:requestId" element={<ModelUpload />} />
             </Route>
