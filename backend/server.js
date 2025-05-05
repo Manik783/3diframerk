@@ -98,63 +98,37 @@ app.get('/', (req, res) => {
 });
 
 // Additional /embed/:modelId route for direct model embedding
-app.get('/embed/:modelId', async (req, res) => {
+app.get("/embed/:modelId", async (req, res) => {
   try {
     const { modelId } = req.params;
     
     console.log(`Direct model embedding request for model: ${modelId}`);
     
     // Get model from database
-    const Model = require('./models/Model');
+    const Model = require("./models/Model");
     const model = await Model.findById(modelId);
     
     if (!model) {
       console.error(`Model not found with ID: ${modelId}`);
-      return res.status(404).send('Model not found');
+      return res.status(404).send("Model not found");
     }
     
-    // Generate and send HTML with model-viewer
-    const modelUrl = model.glbFile;
-    const usdzUrl = model.usdzFile;
-    const posterUrl = model.posterImage;
+    // Generate HTML using embedTemplate
+    const { generateModelViewerHTML } = require("./views/embedTemplate");
+    const html = generateModelViewerHTML(model);
     
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('X-Frame-Options', 'ALLOWALL'); // Allow embedding in iframes
+    // Set appropriate headers
+    res.setHeader("Content-Type", "text/html");
+    res.setHeader("X-Frame-Options", "ALLOWALL"); // Allow embedding in iframes
+    res.set("Cache-Control", "no-store"); // Prevent caching
     
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>3D Model Viewer</title>
-        <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-        <style>
-          body, html { margin: 0; height: 100%; }
-          model-viewer { width: 100%; height: 100vh; }
-        </style>
-      </head>
-      <body>
-        <model-viewer 
-          src="${modelUrl}" 
-          ${usdzUrl ? `ios-src="${usdzUrl}"` : ''}
-          ${posterUrl ? `poster="${posterUrl}"` : ''}
-          alt="3D model" 
-          auto-rotate 
-          camera-controls
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-          shadow-intensity="1">
-        </model-viewer>
-      </body>
-      </html>
-    `);
+    // Send the generated HTML
+    res.send(html);
   } catch (error) {
-    console.error('Error serving embed HTML:', error);
-    res.status(500).send('Error loading model viewer');
+    console.error("Error serving embed HTML:", error);
+    res.status(500).send("Error loading model viewer");
   }
 });
-
 // Development route to see all users 
 if (process.env.NODE_ENV !== 'production') {
   app.get('/dev/users', async (req, res) => {
