@@ -49,6 +49,13 @@ const generateModelViewerHTML = (model) => {
       --poster-color: transparent;
       --progress-bar-color: #000;
       --progress-mask: transparent;
+      /* Override default AR button styling */
+      --ar-button-display: none !important;
+    }
+    
+    /* Hide default AR button */
+    model-viewer::part(ar-button) {
+      display: none !important;
     }
     
     .ar-button-container {
@@ -59,8 +66,8 @@ const generateModelViewerHTML = (model) => {
     }
     
     .ar-button {
-      background-color: #000000;
-      color: #ffffff;
+      background-color: #000000 !important;
+      color: #ffffff !important;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-weight: 600;
       font-size: 16px;
@@ -75,10 +82,11 @@ const generateModelViewerHTML = (model) => {
       transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
+      z-index: 100;
     }
     
     .ar-button:hover {
-      background-color: #222222;
+      background-color: #222222 !important;
       transform: translateY(-1px);
       box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
     }
@@ -95,13 +103,6 @@ const generateModelViewerHTML = (model) => {
       height: 20px;
     }
     
-    .ar-button[disabled] {
-      background-color: #555555;
-      cursor: not-allowed;
-      opacity: 0.7;
-      box-shadow: none;
-    }
-    
     .ar-toast {
       position: fixed;
       bottom: 20px;
@@ -115,6 +116,49 @@ const generateModelViewerHTML = (model) => {
       z-index: 1000;
       display: none;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* QR code for desktop */
+    .qr-code-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    
+    .qr-code-inner {
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 300px;
+      text-align: center;
+    }
+    
+    .qr-code-inner h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    
+    .qr-code-inner p {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .qr-code-inner .close-button {
+      margin-top: 20px;
+      padding: 8px 16px;
+      background-color: #000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
     
     @media (max-width: 768px) {
@@ -142,8 +186,6 @@ const generateModelViewerHTML = (model) => {
     src="${glbFileUrl}" 
     ios-src="${usdzFileUrl}" 
     ${posterImageUrl ? `poster="${posterImageUrl}"` : ''}
-    ${userSettings.showAR ? 'ar' : ''}
-    ar-modes="webxr scene-viewer quick-look"
     camera-controls 
     auto-rotate 
     shadow-intensity="1"
@@ -151,8 +193,7 @@ const generateModelViewerHTML = (model) => {
     alt="3D Model">
   </model-viewer>
   
-  <!-- AR Button -->
-  ${userSettings.showAR ? `
+  <!-- Custom AR Button (always shown) -->
   <div class="ar-button-container">
     <button id="arButton" class="ar-button">
       <svg class="ar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
@@ -167,6 +208,19 @@ const generateModelViewerHTML = (model) => {
   
   <!-- Toast Message for Notifications -->
   <div id="arToast" class="ar-toast"></div>
+  
+  <!-- QR Code Modal for Desktop -->
+  <div id="qrCodeModal" class="qr-code-container">
+    <div class="qr-code-inner">
+      <h3>View in AR on your mobile device</h3>
+      <p>Scan this QR code with your smartphone to experience this 3D model in AR</p>
+      <div id="qrCode"></div>
+      <button class="close-button" id="closeQr">Close</button>
+    </div>
+  </div>
+  
+  <!-- QR Code Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.3/qrcode.min.js"></script>
   
   <script>
     // Device detection
@@ -183,12 +237,6 @@ const generateModelViewerHTML = (model) => {
         return 'android';
       }
       
-      // Check if AR is supported in browser
-      const model = document.querySelector('model-viewer');
-      if (model && model.canActivateAR) {
-        return 'ar-capable';
-      }
-      
       return 'desktop';
     };
     
@@ -203,45 +251,89 @@ const generateModelViewerHTML = (model) => {
       }, duration);
     };
     
+    // Generate and show QR code modal
+    const showQrCode = (url) => {
+      const modal = document.getElementById('qrCodeModal');
+      const qrContainer = document.getElementById('qrCode');
+      const closeBtn = document.getElementById('closeQr');
+      
+      // Clear previous QR code
+      qrContainer.innerHTML = '';
+      
+      // Generate QR code
+      QRCode.toCanvas(qrContainer, window.location.href, { width: 200 }, (error) => {
+        if (error) console.error('Error generating QR code:', error);
+      });
+      
+      // Show modal
+      modal.style.display = 'flex';
+      
+      // Close button
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+      
+      // Close on outside click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    };
+    
     // Initialize AR button
     const initARButton = () => {
       const arButton = document.getElementById('arButton');
       const modelViewer = document.getElementById('modelViewer');
       const device = deviceDetection();
       
+      // Always show the AR button, regardless of device
       arButton.addEventListener('click', () => {
         try {
           if (device === 'ios') {
             // iOS - QuickLook
             window.location.href = '${usdzFileUrl}';
-          } else if (device === 'android' || device === 'ar-capable') {
-            // Android or AR-capable browser - Use model-viewer's AR
-            if (modelViewer.canActivateAR) {
-              modelViewer.activateAR();
-            } else {
-              showToast('AR is not fully supported on this device or browser');
-            }
+          } else if (device === 'android') {
+            // Android browser - Use Scene Viewer if available
+            const androidUrl = 'intent://arvr.google.com/scene-viewer/1.0?file=' + 
+              encodeURIComponent('${glbFileUrl}') + 
+              '&mode=ar_only#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url=' + 
+              encodeURIComponent(window.location.href) + 
+              ';end;';
+            window.location = androidUrl;
           } else {
-            // Desktop fallback
-            showToast('AR is only available on mobile devices. Scan this page on your smartphone to view in AR.');
+            // Desktop - Show QR code
+            showQrCode(window.location.href);
           }
         } catch (error) {
           console.error('AR activation error:', error);
           showToast('Could not activate AR. Please try again on a compatible device.');
         }
       });
-      
-      // Disable button if AR is not supported
-      if (device === 'desktop') {
-        arButton.title = 'AR is only available on mobile devices';
-      }
     };
     
     // Initialize when the page loads
     window.addEventListener('DOMContentLoaded', () => {
+      // Force hide the built-in AR button
+      const modelViewer = document.getElementById('modelViewer');
+      
+      // Sometimes the ar-button shows up even with CSS, so we observe and remove it
+      const observer = new MutationObserver((mutations) => {
+        const arButton = modelViewer.shadowRoot?.querySelector('button[slot="ar-button"]');
+        if (arButton) {
+          arButton.style.display = 'none';
+          arButton.style.opacity = '0';
+          arButton.style.visibility = 'hidden';
+        }
+      });
+      
+      // Start observing
+      observer.observe(modelViewer, { childList: true, subtree: true });
+      
+      // Initialize our custom AR button
       initARButton();
     });
-  </script>` : ''}
+  </script>
 </body>
 </html>
   `;
