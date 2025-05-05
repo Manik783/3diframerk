@@ -15,7 +15,8 @@ router.post('/', protect, createRequest);
 router.get('/my', protect, getUserRequests); // User's own requests
 
 // Admin routes
-router.get('/', protect, admin, getAllRequests); // All requests with filtering
+// IMPORTANT: /all route must come BEFORE /:id to prevent "all" being treated as an ID
+router.get('/all', protect, admin, getAllRequests); // All requests with filtering (admin only)
 router.get('/:id', protect, getRequestById);
 router.put('/:id/status', protect, admin, updateRequestStatus);
 router.delete('/:id', protect, admin, deleteRequest);
